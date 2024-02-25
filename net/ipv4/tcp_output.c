@@ -874,32 +874,23 @@ static unsigned int tcp_syn_options(struct sock *sk, struct sk_buff *skb,
 	printk(KERN_ALERT "remaining = %d", remaining);
     printk(KERN_ALERT "puzzle type = %u", opts->puzzle_type);
 	printk(KERN_ALERT "source ip: %u\n", inet_sk(sk)->inet_saddr);
-	if (do_get_puzzle_type() == PZLTYPE_EXT) {
+	if (do_get_puzzle_type() != PZLTYPE_NONE) {
 		struct puzzle_cache* cache;
 		if (find_puzzle_cache(inet_sk(sk)->inet_saddr, &cache) == 0) {
-			opts->puzzle_type = do_get_puzzle_type();
+			opts->puzzle_type = cache->puzzle_type;
 			remaining -= TCPOLEN_PZL_TYPE;
 			opts->puzzle = cache->puzzle;
 			remaining -= TCPOLEN_PUZZLE;
 			opts->dns_ip = cache->dns_ip;
 			remaining -= TCPOLEN_DNS_IP;
-			opts->nonce = do_solve_puzzle(cache->threshold, cache->puzzle, cache->dns_ip, inet_sk(sk)->inet_saddr, cache->puzzle_type);
+			if (opts->puzzle_type == PZLTYPE_EXT) 
+				opts->nonce = do_solve_puzzle(cache->threshold, cache->puzzle, cache->dns_ip, inet_sk(sk)->inet_saddr, cache->puzzle_type);
+			else if (opts->puzzle_type == PZLTYPE_BOT)
+				opts->nonce = 0;
 			remaining -= TCPOLEN_NONCE;
 			opts->threshold = cache->threshold;
 			remaining -= TCPOLEN_THRESHOLD;
 			printk(KERN_ALERT "dip = %u, puzzle = %u, nonce= %u, threshold = %u", opts->dns_ip, opts->puzzle, opts->nonce, opts->threshold);
-		}
-	}
-	if (do_get_puzzle_type() == PZLTYPE_BOT) {
-		struct puzzle_cache* cache;
-		if (find_puzzle_cache(inet_sk(sk)->inet_saddr, &cache) == 0) {
-			opts->puzzle_type = do_get_puzzle_type();
-			opts->puzzle = cache->puzzle;
-			opts->dns_ip = cache->dns_ip;
-			opts->nonce = 0;
-			opts->threshold = 0;
-			remaining -= TCPOLEN_DNS_IP + TCPOLEN_PZL_TYPE + TCPOLEN_PUZZLE + TCPOLEN_NONCE + TCPOLEN_THRESHOLD;
-			printk(KERN_ALERT "puzzle = %u, nonce= %u",opts->puzzle, opts->nonce);
 		}
 	}
 	/* Modified by shyang */

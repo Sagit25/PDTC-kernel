@@ -9,15 +9,20 @@
 #define PZLTYPE_EXT 1
 #define PZLTYPE_BOT 2
 
-#define PZLTYPE_MAX 63
+#define BUCKET_SIZE 8192
+#define HASH_FUNCTIONS 4
+#define HASH_SALT 42
 
-#define MAX_ASSIGNED_LENGTH 255
-#define MAX_SPARE_GAP 63
+#define PLAIN_LENGTH 17
+#define CBF_INPUT_LENGTH 8
+#define SHA256_LENGTH 32
 
 struct puzzle_policy {
 	u32 ip;
-	u32 threshold;
 	u32 seed;
+	u32 length;
+	u32 threshold;
+	unsigned int table[BUCKET_SIZE];
 	struct list_head list;
 };
 
@@ -27,11 +32,10 @@ struct puzzle_cache {
 	u32 puzzle_type;
 	u32 puzzle;
 	u32 threshold;
-	u32 port;
 	struct list_head list;
 };
 
-u32 do_set_puzzle(u32 nonce, u32 seed, u32 dns_ip, u32 client_ip, u32 puzzle_type);
+u32 do_hash_puzzle(u32 nonce, u32 seed, u32 dns_ip, u32 client_ip, u32 puzzle_type);
 u32 do_solve_puzzle(u32 threshold, u32 puzzle, u32 dns_ip, u32 client_ip, u32 puzzle_type);
 int find_puzzle_policy(u32 ip, struct puzzle_policy** ptr);
 int find_puzzle_cache(u32 ip, struct puzzle_cache** ptr);
@@ -45,5 +49,10 @@ u32 do_get_puzzle_type(void);
 u32 do_set_puzzle_type(u32 type);
 long do_get_local_dns(void);
 long do_set_local_dns(u32 ip, u32 port);
+/* CBF(Counting Bloom Filter) functions */
+u32 hash_cbf(u32 salt, u32 x);
+int insert_cbf(struct puzzle_policy* policy, u32 x);
+int check_cbf(struct puzzle_policy* policy, u32 x);
+int delete_cbf(struct puzzle_policy* policy, u32 x);
 
 #endif

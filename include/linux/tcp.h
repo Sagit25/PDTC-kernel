@@ -126,7 +126,7 @@ struct tcp_options_received {
 		unused:7;
 
 	/* Modified by shyang */
-	u8  	puzzle_type;
+	u32  	puzzle_type;
 	u32 	puzzle;
 	u32 	nonce;
 	u32		dns_ip;

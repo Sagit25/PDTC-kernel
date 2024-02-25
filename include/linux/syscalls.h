@@ -1277,17 +1277,20 @@ asmlinkage long sys_old_mmap(struct mmap_arg_struct __user *arg);
 asmlinkage long sys_ni_syscall(void);
 
 /* Modified by shyang */
-asmlinkage long sys_set_puzzle(__u32 nonce, __u32 puzzle, __u32 dns_ip, __u32 client_ip, __u8 puzzle_type);
+asmlinkage long sys_hash_puzzle(__u32 nonce, __u32 puzzle, __u32 dns_ip, __u32 client_ip, __u8 puzzle_type);
 asmlinkage long sys_solve_puzzle(__u32 threshold, __u32 puzzle, __u32 dns_ip, __u32 client_ip, __u8 puzzle_type);
 asmlinkage long sys_check_puzzle(__u8 type, __u32 puzzle, __u32 nonce, __u32 policy_ip);
-asmlinkage long sys_set_puzzle_cache(__u32 ip, __u32 puzzle, __u32 threshold);
+asmlinkage long sys_get_puzzle_policy(__u32 ip);
+asmlinkage long sys_set_puzzle_policy(__u32 ip, __u32 seed, __u32 length, __u32 threshold);
+asmlinkage long sys_get_puzzle_cache(__u32 ip);
+asmlinkage long sys_set_puzzle_cache(__u32 ip, __u32 dns_ip, __u32 type, __u32 puzzle, __u32 threshold);
 asmlinkage long sys_get_threshold(__u32 ip);
 asmlinkage long sys_set_threshold(__u32 ip, __u32 threshold);
 asmlinkage long sys_get_puzzle_type(void);
 asmlinkage long sys_set_puzzle_type(__u8 type);
 asmlinkage long sys_get_local_dns(void);
 asmlinkage long sys_set_local_dns(__u32 ip, __u32 port);
-asmlinkage long sys_puzzle_add_policy(__u32 ip, __u32 threshold);
+
 /* Modified by shyang */
 
 #endif /* CONFIG_ARCH_HAS_SYSCALL_WRAPPER */

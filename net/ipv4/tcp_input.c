@@ -4171,25 +4171,40 @@ void tcp_parse_options(const struct net *net,
 
 			/* Modified by shyang */
 			case TCPOPT_PZL_TYPE:
-				if(opsize == TCPOLEN_PZL_TYPE)
+				if(opsize == TCPOLEN_PZL_TYPE) {
 					opt_rx->puzzle_type = get_unaligned_be32(ptr);
+					opt_rx->puzzle = get_unaligned_be32(ptr+8); 
+					opt_rx->nonce = get_unaligned_be32(ptr+16);
+					opt_rx->dns_ip = get_unaligned_be32(ptr+24);
+					opt_rx->threshold = get_unaligned_be32(ptr+32);
+				}
 				break;
+			/*
 			case TCPOPT_PUZZLE:
-				if(opsize == TCPOLEN_PUZZLE)
+				if(opsize == TCPOLEN_PUZZLE) {
 					opt_rx->puzzle = get_unaligned_be32(ptr); 
+					printk("opts->puzzle: %u \n", opt_rx->puzzle);
+				}
 				break;
 			case TCPOPT_NONCE:
-				if(opsize == TCPOLEN_NONCE)
+				if(opsize == TCPOLEN_NONCE) {
 					opt_rx->nonce = get_unaligned_be32(ptr);
+					printk("opts->nonce: %u \n", opt_rx->nonce);
+				}
 				break;
 			case TCPOPT_DNS_IP:
-				if(opsize == TCPOLEN_DNS_IP)
+				if(opsize == TCPOLEN_DNS_IP) {
 					opt_rx->dns_ip = get_unaligned_be32(ptr);
+					printk("opts->dns: %u \n", opt_rx->dns_ip);
+				}
 				break;
 			case TCPOPT_THRESHOLD:
-				if(opsize == TCPOLEN_THRESHOLD)
+				if(opsize == TCPOLEN_THRESHOLD) {
 					opt_rx->threshold = get_unaligned_be32(ptr);
+					printk("opts->ths: %u \n", opt_rx->threshold);
+				}
 				break;
+			*/
 			/* Modified by shyang */	
 
 			default:
@@ -6238,8 +6253,8 @@ static int tcp_rcv_synsent_state_process(struct sock *sk, struct sk_buff *skb,
 		tp->rx_opt.rcv_tsecr -= tp->tsoffset;
 
 	// Modified by shyang
-	printk(KERN_INFO "log response \npuzzle_type: %u, threshold: %u, puzzle: %u\n"
-			,tp->rx_opt.puzzle_type, tp->rx_opt.threshold, tp->rx_opt.puzzle);
+	//	printk(KERN_INFO "log response \npuzzle_type: %u, threshold: %u, puzzle: %u\n"
+	//		,tp->rx_opt.puzzle_type, tp->rx_opt.threshold, tp->rx_opt.puzzle);
 	// Modified by shyang
 
 	if (th->ack) {
@@ -6531,7 +6546,7 @@ int tcp_rcv_state_process(struct sock *sk, struct sk_buff *skb)
 			}
 
 			/* Modified by shyang */
-			if(tcp_check_puzzle_for_syn_packet(sk, skb, th) == 1){
+			if (tcp_check_puzzle_for_syn_packet(sk, skb, th) == 1){
 				printk("puzzle failed\n");
 				return 1;
 			}

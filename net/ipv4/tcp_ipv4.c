@@ -685,7 +685,7 @@ static void tcp_v4_send_reset(const struct sock *sk, struct sk_buff *skb)
 	struct {
 		struct tcphdr th;
 		/* Modified by shyang*/
-		__be32 tcp_opt[5];
+		//	__be32 tcp_opt[5];
 		/* Modified by shyang*/
 		__be32 opt[OPTION_BYTES / sizeof(__be32)];
 	} rep;
@@ -702,10 +702,12 @@ static void tcp_v4_send_reset(const struct sock *sk, struct sk_buff *skb)
 	struct net *net;
 
 	/* Modified by shyang*/
+	/*
 	int offset = 0;
 	u8 puzzle_type;
 	u32 puzzle = 0, threshold = 0;
 	printk("th->rst = %d",th->rst);
+	*/
 	/* Modified by shyang*/
 
 	u32 txhash = 0;
@@ -751,7 +753,7 @@ static void tcp_v4_send_reset(const struct sock *sk, struct sk_buff *skb)
 	rep.th.source = th->dest;
 
 	/* Modified by shyang*/
-	rep.th.doff   = sizeof(struct tcphdr) / 4 + offset;
+	rep.th.doff   = sizeof(struct tcphdr) / 4; // + offset;
 	rep.th.rst    = 1;
 	printk("send reset %u -> %u", ntohs(rep.th.source), ntohs(rep.th.dest));
 	/* Modified by shyang*/
@@ -851,6 +853,7 @@ static void tcp_v4_send_reset(const struct sock *sk, struct sk_buff *skb)
 	arg.flags = (sk && inet_sk_transparent(sk)) ? IP_REPLY_ARG_NOSRCCHECK : 0;
 
 	/* Modified by shyang*/
+	/*
 	printk("checkint options before start");
 	for(int i = 0; i < offset; i++) {
 		printk("%d %d %d %d"
@@ -859,6 +862,7 @@ static void tcp_v4_send_reset(const struct sock *sk, struct sk_buff *skb)
 			,(rep.tcp_opt[i] >> 8) % 256
 			,(rep.tcp_opt[i] >> 0) % 256);
 	}
+	*/
 	/* Modified by shyang*/
 
 	/* When socket is gone, all binding information is lost.

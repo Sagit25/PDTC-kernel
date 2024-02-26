@@ -95,13 +95,13 @@ SYSCALL_DEFINE5(solve_puzzle, __u32, threshold, __u32, puzzle, __u32, dns_ip, __
 
 int do_check_puzzle(u32 type, u32 puzzle, u32 dns_ip, u32 nonce, u32 threshold, u32 client_ip) {
     struct puzzle_policy* policy;
-    if (find_puzzle_policy(dns_ip, &policy) != 0) return 1;
-    printk(KERN_INFO "dns ip : %u, puzzle : %u, nonce : %u, threshold : %u / pthreshold : %u", dns_ip, puzzle, nonce, threshold, policy->threshold);
-    printk(KERN_INFO "host pt %u / client pt %u", puzzle_type, type);
     if (puzzle_type == PZLTYPE_NONE)
         return 0; // don't need to solve puzzle -> valid
     if (type == PZLTYPE_NONE)
         return 1; // wrong puzzle type -> invalid
+    if (find_puzzle_policy(dns_ip, &policy) != 0) return 1;
+    printk(KERN_INFO "dns ip : %u, puzzle : %u, nonce : %u, threshold : %u / pthreshold : %u", dns_ip, puzzle, nonce, threshold, policy->threshold);
+    printk(KERN_INFO "host pt %u / client pt %u", puzzle_type, type);
     if (threshold != policy->threshold)
         return 1; // wrong threshold -> cheating about ISP -> invalid
     if (delete_cbf(policy, puzzle) == 0) 
@@ -137,7 +137,7 @@ int find_puzzle_policy(u32 ip, struct puzzle_policy** ptr) {
 }
 EXPORT_SYMBOL(find_puzzle_policy);
 
-long add_puzzle_policy(u32 ip, struct puzzle_policy** ptr) {
+long add_puzzle_policy(u32 ip, u32 threshold, struct puzzle_policy** ptr) {
     struct puzzle_policy* policy;
     if (addlock) return -1;
     addlock = true;
@@ -146,6 +146,7 @@ long add_puzzle_policy(u32 ip, struct puzzle_policy** ptr) {
     memset(policy, 0, sizeof(*policy));
 
     policy->ip = ip;
+    policy->threshold = threshold;
     *ptr = policy;
 
     list_add_tail(&(policy->list), &policy_head);
@@ -159,12 +160,11 @@ EXPORT_SYMBOL(add_puzzle_policy);
 long update_puzzle_policy(u32 ip, u32 seed, u32 length, u32 threshold) {
     struct puzzle_policy* policy;
     if (find_puzzle_policy(ip, &policy) != 0) {
-        add_puzzle_policy(ip, &policy);
+        add_puzzle_policy(ip, threshold, &policy);
     }
 
     policy->seed = seed;
     policy->length = length;
-    policy->threshold = threshold;
 
     u32 token = seed;
     for (int j = 0; j < policy->length; ++j) {
@@ -319,8 +319,8 @@ SYSCALL_DEFINE1(get_threshold, __u32, ip) {
 u32 do_set_threshold(u32 ip, u32 threshold) {
 	struct puzzle_policy* policy;
 	if (find_puzzle_policy(ip, &policy) == 0) return policy->threshold = threshold;
-    else add_policy(ip, threshold);
-	return threshold;
+    else add_puzzle_policy(ip, threshold, &policy);
+	return policy->threshold;
 }
 EXPORT_SYMBOL(do_set_threshold);
 SYSCALL_DEFINE2(set_threshold, __u32, ip, __u32, threshold) {

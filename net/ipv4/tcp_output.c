@@ -871,8 +871,6 @@ static unsigned int tcp_syn_options(struct sock *sk, struct sk_buff *skb,
 	bpf_skops_hdr_opt_len(sk, skb, NULL, NULL, 0, opts, &remaining);
 
 	/* Modified by shyang */
-	printk(KERN_ALERT "remaining = %d", remaining);
-    printk(KERN_ALERT "puzzle type = %u", opts->puzzle_type);
 	printk(KERN_ALERT "source ip: %u\n", inet_sk(sk)->inet_saddr);
 	if (do_get_puzzle_type() != PZLTYPE_NONE) {
 		struct puzzle_cache* cache;
